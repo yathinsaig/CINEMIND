@@ -203,6 +203,47 @@ class MultiAgentOrchestrator:
                 f"This one's a gem 💎 {movie_title} #Movies #Recommended"
             ]
     
+    async def personalized_recommendation_agent(self, movie_title: str, genre: str, preferences: Optional[dict] = None) -> List[dict]:
+        """Recommends movies based on user preferences"""
+        if not preferences or (not preferences.get('favorite_genres') and not preferences.get('favorite_languages') and not preferences.get('favorite_movies') and not preferences.get('current_mood')):
+            return []
+        
+        pref_context = []
+        if preferences.get('favorite_genres'):
+            pref_context.append(f"Preferred genres: {', '.join(preferences['favorite_genres'])}")
+        if preferences.get('favorite_languages'):
+            pref_context.append(f"Preferred languages: {', '.join(preferences['favorite_languages'])}")
+        if preferences.get('favorite_movies'):
+            pref_context.append(f"Favorite movies: {', '.join(preferences['favorite_movies'][:5])}")
+        if preferences.get('current_mood'):
+            pref_context.append(f"Current mood: {preferences['current_mood']}")
+        
+        pref_str = ". ".join(pref_context)
+        
+        chat = await self._create_chat(
+            "You are a Personalized Recommendation Agent. Suggest exactly 5 movies or TV series tailored to the user's specific preferences. "
+            "Consider their favorite genres, languages, favorite movies, and current mood to make highly relevant suggestions. "
+            "Respond ONLY with a JSON array (no markdown, no code blocks) with this exact format: "
+            '[{"title": "Movie Name", "reason": "Why this matches their preferences"}]'
+        )
+        
+        message = UserMessage(
+            text=f"Based on the movie '{movie_title}' ({genre}) and the user's preferences: {pref_str}. "
+            f"Recommend 5 movies/series that would perfectly match their taste and current mood."
+        )
+        response = await chat.send_message(message)
+        
+        try:
+            import json
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("```")[1]
+                if cleaned.startswith("json"):
+                    cleaned = cleaned[4:]
+            return json.loads(cleaned)
+        except:
+            return []
+    
     async def validator_agent(self, analysis_data: dict) -> dict:
         """Validates and cleans the final output"""
         # Ensure no spoilers in content (basic check)
