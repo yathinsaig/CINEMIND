@@ -1,30 +1,88 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* CineMind AI - Custom Styles */
+
+.App {
+    min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
+/* Hero Section */
+.hero-section {
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(5, 5, 5, 0.7) 0%, rgba(5, 5, 5, 0.95) 100%);
+}
+
+/* Search Input Focus Animation */
+.search-input:focus {
+    box-shadow: 0 0 30px rgba(229, 9, 20, 0.3);
+}
+
+/* Card Hover Effects */
+.analysis-card {
+    transition: all 0.3s ease;
+}
+
+.analysis-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Recommendation Card */
+.recommendation-card {
+    transition: all 0.3s ease;
+}
+
+.recommendation-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Caption Card Copy Button */
+.caption-card .copy-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.caption-card:hover .copy-btn {
+    opacity: 1;
+}
+
+/* Sentiment Indicator */
+.sentiment-positive {
+    color: #22c55e;
+}
+
+.sentiment-mixed {
+    color: #eab308;
+}
+
+.sentiment-negative {
+    color: #ef4444;
+}
+
+/* Loading Pulse */
+@keyframes loadingPulse {
+    0%, 100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.8;
     }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.loading-pulse {
+    animation: loadingPulse 1.5s ease-in-out infinite;
 }
 
-.App-link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
+/* Film Reel Animation */
+@keyframes spin-slow {
     from {
         transform: rotate(0deg);
     }
@@ -32,3 +90,14 @@
         transform: rotate(360deg);
     }
 }
+
+.animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+}
+
+/* Stagger Animation */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
