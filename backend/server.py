@@ -343,7 +343,13 @@ async def analyze_movie(request: MovieAnalysisRequest):
     
     try:
         orchestrator = MultiAgentOrchestrator(EMERGENT_LLM_KEY)
-        analysis_result = await orchestrator.analyze_movie(request.movie_title.strip())
+        
+        # Convert preferences to dict if provided
+        preferences_dict = None
+        if request.preferences:
+            preferences_dict = request.preferences.model_dump()
+        
+        analysis_result = await orchestrator.analyze_movie(request.movie_title.strip(), preferences_dict)
         
         # Create response object
         response = MovieAnalysisResponse(**analysis_result)
@@ -352,6 +358,7 @@ async def analyze_movie(request: MovieAnalysisRequest):
         doc = response.model_dump()
         doc['timestamp'] = doc['timestamp'].isoformat()
         doc['recommendations'] = [r if isinstance(r, dict) else r.model_dump() for r in doc['recommendations']]
+        doc['personalized_recommendations'] = [r if isinstance(r, dict) else r.model_dump() for r in doc.get('personalized_recommendations', [])]
         await db.movie_analyses.insert_one(doc)
         
         return response
