@@ -36,8 +36,15 @@ logger = logging.getLogger(__name__)
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
 # Request/Response Models
+class UserPreferences(BaseModel):
+    favorite_genres: List[str] = []
+    favorite_languages: List[str] = []
+    favorite_movies: List[str] = []
+    current_mood: Optional[str] = None
+
 class MovieAnalysisRequest(BaseModel):
     movie_title: str
+    preferences: Optional[UserPreferences] = None
 
 class Recommendation(BaseModel):
     title: str
@@ -53,6 +60,7 @@ class MovieAnalysisResponse(BaseModel):
     audience_sentiment: str
     summary: str
     recommendations: List[Recommendation]
+    personalized_recommendations: List[Recommendation] = []
     instagram_captions: List[str]
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
