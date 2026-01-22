@@ -201,6 +201,13 @@ class Recommendation(BaseModel):
     title: str
     reason: str
 
+class MediaImages(BaseModel):
+    poster: Optional[str] = None
+    background: Optional[str] = None
+    logo: Optional[str] = None
+    banner: Optional[str] = None
+    thumb: Optional[str] = None
+
 class MovieAnalysisResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -213,6 +220,8 @@ class MovieAnalysisResponse(BaseModel):
     recommendations: List[Recommendation]
     personalized_recommendations: List[Recommendation] = []
     instagram_captions: List[str]
+    images: MediaImages = Field(default_factory=MediaImages)
+    media_type: str = "Movie"
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class StatusCheck(BaseModel):
