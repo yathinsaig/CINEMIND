@@ -37,11 +37,16 @@ class MovieIntelligenceAPITester:
             self.log_test("Root Endpoint", False, str(e))
             return False
 
-    def test_analyze_movie_valid(self, movie_title="The Matrix"):
+    def test_analyze_movie_valid(self, movie_title="The Matrix", preferences=None):
         """Test movie analysis with valid input"""
         try:
             payload = {"movie_title": movie_title}
+            if preferences:
+                payload["preferences"] = preferences
+                
             print(f"\n🔍 Testing movie analysis for: '{movie_title}'")
+            if preferences:
+                print(f"   With preferences: {preferences}")
             print("⏳ This may take 15-30 seconds due to AI processing...")
             
             start_time = time.time()
@@ -84,6 +89,13 @@ class MovieIntelligenceAPITester:
                     if not isinstance(data.get('instagram_captions'), list) or len(data['instagram_captions']) == 0:
                         validation_errors.append("No Instagram captions provided")
                     
+                    # Check personalized recommendations if preferences were provided
+                    if preferences:
+                        if 'personalized_recommendations' not in data:
+                            validation_errors.append("Missing personalized_recommendations field when preferences provided")
+                        elif not isinstance(data.get('personalized_recommendations'), list):
+                            validation_errors.append("personalized_recommendations should be a list")
+                    
                     if validation_errors:
                         success = False
                         details = f"Validation errors: {validation_errors}"
@@ -93,6 +105,7 @@ class MovieIntelligenceAPITester:
                         print(f"   Genre: {data.get('genre')}")
                         print(f"   Sentiment: {data.get('overall_sentiment')}")
                         print(f"   Recommendations: {len(data.get('recommendations', []))}")
+                        print(f"   Personalized Recs: {len(data.get('personalized_recommendations', []))}")
                         print(f"   Captions: {len(data.get('instagram_captions', []))}")
                         
             else:
@@ -102,14 +115,23 @@ class MovieIntelligenceAPITester:
                 except:
                     details = f"Status: {response.status_code}, Response: {response.text[:200]}"
             
-            self.log_test(f"Analyze Movie - {movie_title}", success, details)
+            test_name = f"Analyze Movie - {movie_title}"
+            if preferences:
+                test_name += " (with preferences)"
+            self.log_test(test_name, success, details)
             return success, response.json() if success else None
             
         except requests.exceptions.Timeout:
-            self.log_test(f"Analyze Movie - {movie_title}", False, "Request timeout (>60s)")
+            test_name = f"Analyze Movie - {movie_title}"
+            if preferences:
+                test_name += " (with preferences)"
+            self.log_test(test_name, False, "Request timeout (>60s)")
             return False, None
         except Exception as e:
-            self.log_test(f"Analyze Movie - {movie_title}", False, str(e))
+            test_name = f"Analyze Movie - {movie_title}"
+            if preferences:
+                test_name += " (with preferences)"
+            self.log_test(test_name, False, str(e))
             return False, None
 
     def test_analyze_movie_empty_title(self):
