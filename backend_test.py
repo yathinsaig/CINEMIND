@@ -270,7 +270,8 @@ class MovieIntelligenceAPITester:
         except Exception as e:
             self.log_test("Empty Preferences Handling", False, str(e))
             return False
-        """Run all backend tests"""
+
+    def run_all_tests(self):
         print("🚀 Starting Movie Intelligence API Tests")
         print(f"🌐 Testing against: {self.base_url}")
         print("=" * 60)
