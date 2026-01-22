@@ -10,6 +10,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -32,8 +33,158 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# LLM Configuration
+# API Keys Configuration
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+OMDB_API_KEY = os.environ.get('OMDB_API_KEY')
+TVMAZE_API_KEY = os.environ.get('TVMAZE_API_KEY')
+FANART_API_KEY = os.environ.get('FANART_API_KEY')
+
+
+# Image Fetcher Class
+class MediaImageFetcher:
+    def __init__(self):
+        self.omdb_key = OMDB_API_KEY
+        self.tvmaze_key = TVMAZE_API_KEY
+        self.fanart_key = FANART_API_KEY
+    
+    async def get_imdb_id(self, title: str) -> Optional[str]:
+        """Get IMDB ID from OMDB API"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"http://www.omdbapi.com/",
+                    params={"t": title, "apikey": self.omdb_key}
+                )
+                data = response.json()
+                if data.get("Response") == "True":
+                    return data.get("imdbID")
+        except Exception as e:
+            logger.error(f"OMDB API error: {e}")
+        return None
+    
+    async def get_tvmaze_id(self, title: str) -> Optional[int]:
+        """Get TVMaze ID for TV shows"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"https://api.tvmaze.com/singlesearch/shows",
+                    params={"q": title}
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("id")
+        except Exception as e:
+            logger.error(f"TVMaze API error: {e}")
+        return None
+    
+    async def get_fanart_images(self, imdb_id: str = None, tvmaze_id: int = None) -> dict:
+        """Get images from Fanart.tv API"""
+        images = {
+            "poster": None,
+            "background": None,
+            "logo": None,
+            "banner": None,
+            "thumb": None
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                # Try movie endpoint first
+                if imdb_id:
+                    response = await client.get(
+                        f"https://webservice.fanart.tv/v3/movies/{imdb_id}",
+                        params={"api_key": self.fanart_key}
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        # Get movie poster
+                        if data.get("movieposter"):
+                            images["poster"] = data["movieposter"][0].get("url")
+                        # Get movie background/fanart
+                        if data.get("moviebackground"):
+                            images["background"] = data["moviebackground"][0].get("url")
+                        elif data.get("hdmovieclearart"):
+                            images["background"] = data["hdmovieclearart"][0].get("url")
+                        # Get movie logo
+                        if data.get("hdmovielogo"):
+                            images["logo"] = data["hdmovielogo"][0].get("url")
+                        elif data.get("movielogo"):
+                            images["logo"] = data["movielogo"][0].get("url")
+                        # Get movie banner
+                        if data.get("moviebanner"):
+                            images["banner"] = data["moviebanner"][0].get("url")
+                        # Get thumb
+                        if data.get("moviethumb"):
+                            images["thumb"] = data["moviethumb"][0].get("url")
+                        return images
+                
+                # Try TV show endpoint
+                if tvmaze_id:
+                    # Fanart.tv uses TVDB IDs, try to get from TVMaze
+                    tvmaze_response = await client.get(
+                        f"https://api.tvmaze.com/shows/{tvmaze_id}"
+                    )
+                    if tvmaze_response.status_code == 200:
+                        tvmaze_data = tvmaze_response.json()
+                        tvdb_id = tvmaze_data.get("externals", {}).get("thetvdb")
+                        
+                        if tvdb_id:
+                            response = await client.get(
+                                f"https://webservice.fanart.tv/v3/tv/{tvdb_id}",
+                                params={"api_key": self.fanart_key}
+                            )
+                            if response.status_code == 200:
+                                data = response.json()
+                                # Get TV poster
+                                if data.get("tvposter"):
+                                    images["poster"] = data["tvposter"][0].get("url")
+                                # Get TV background/fanart
+                                if data.get("showbackground"):
+                                    images["background"] = data["showbackground"][0].get("url")
+                                # Get TV logo
+                                if data.get("hdtvlogo"):
+                                    images["logo"] = data["hdtvlogo"][0].get("url")
+                                elif data.get("clearlogo"):
+                                    images["logo"] = data["clearlogo"][0].get("url")
+                                # Get TV banner
+                                if data.get("tvbanner"):
+                                    images["banner"] = data["tvbanner"][0].get("url")
+                                # Get thumb
+                                if data.get("tvthumb"):
+                                    images["thumb"] = data["tvthumb"][0].get("url")
+                                return images
+        except Exception as e:
+            logger.error(f"Fanart.tv API error: {e}")
+        
+        return images
+    
+    async def fetch_media_images(self, title: str, media_type: str = "Movie") -> dict:
+        """Main method to fetch images for a movie or TV show"""
+        images = {
+            "poster": None,
+            "background": None,
+            "logo": None,
+            "banner": None,
+            "thumb": None
+        }
+        
+        try:
+            if media_type.lower() in ["tv series", "tv show", "series", "show"]:
+                # Try TV show first
+                tvmaze_id = await self.get_tvmaze_id(title)
+                if tvmaze_id:
+                    images = await self.get_fanart_images(tvmaze_id=tvmaze_id)
+                    if images.get("poster") or images.get("background"):
+                        return images
+            
+            # Try movie (also fallback for TV shows)
+            imdb_id = await self.get_imdb_id(title)
+            if imdb_id:
+                images = await self.get_fanart_images(imdb_id=imdb_id)
+        except Exception as e:
+            logger.error(f"Error fetching media images: {e}")
+        
+        return images
 
 # Request/Response Models
 class UserPreferences(BaseModel):
