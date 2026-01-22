@@ -14,7 +14,9 @@ import {
   ThumbsDown,
   Minus,
   Heart,
-  Sparkles
+  Sparkles,
+  Tv,
+  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -29,6 +31,7 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [isMovieFavorite, setIsMovieFavorite] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const analysis = location.state?.analysis;
 
   useEffect(() => {
@@ -98,20 +101,51 @@ const ResultsPage = () => {
   };
 
   const hasPersonalizedRecs = Array.isArray(analysis.personalized_recommendations) && analysis.personalized_recommendations.length > 0;
+  
+  // Get images from analysis
+  const images = analysis.images || {};
+  const hasBackground = images.background || images.poster;
+  const backgroundImage = images.background || images.poster;
+  const posterImage = images.poster;
+  const logoImage = images.logo;
+  const isTV = analysis.media_type?.toLowerCase().includes('tv') || analysis.media_type?.toLowerCase().includes('series');
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1571850447508-b0e0de962e87?w=1920&q=80')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <div className="min-h-screen bg-background/95 backdrop-blur-sm">
+    <div className="min-h-screen bg-background relative">
+      {/* Dynamic Background Image */}
+      {hasBackground && (
+        <div 
+          className="fixed inset-0 z-0"
+          style={{
+            backgroundImage: `url('${backgroundImage}')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundAttachment: 'fixed'
+          }}
+        >
+          {/* Gradient overlays for better readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/90" />
+        </div>
+      )}
+      
+      {/* Fallback background if no images */}
+      {!hasBackground && (
+        <div 
+          className="fixed inset-0 z-0"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1571850447508-b0e0de962e87?w=1920&q=80')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-0 bg-background/95" />
+        </div>
+      )}
+
+      <div className="relative z-10 min-h-screen">
         {/* Header */}
-        <header className="sticky top-0 z-50 glass-card border-b border-white/10">
+        <header className="sticky top-0 z-50 glass-card border-b border-white/10 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
             <Button
               variant="ghost"
@@ -137,27 +171,78 @@ const ResultsPage = () => {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-12 gap-6"
           >
-            {/* Title & Meta Section */}
+            {/* Hero Section with Poster */}
             <motion.div 
               variants={itemVariants}
               className="col-span-1 md:col-span-12"
             >
-              <div className="glass-card rounded-2xl p-6 md:p-8">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <Badge 
-                      variant="outline" 
-                      className="mb-3 font-mono text-xs tracking-wider border-primary/50 text-primary"
-                    >
-                      AI ANALYSIS COMPLETE
-                    </Badge>
-                    <h1 
-                      className="font-bebas text-4xl md:text-6xl tracking-tight text-white mb-2"
-                      data-testid="movie-title"
-                    >
-                      {analysis.movie_title}
-                    </h1>
-                    <div className="flex items-center gap-3 flex-wrap">
+              <div className="glass-card rounded-2xl p-6 md:p-8 overflow-hidden">
+                <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+                  {/* Poster Image */}
+                  {posterImage && (
+                    <div className="flex-shrink-0 mx-auto md:mx-0">
+                      <div className="relative w-48 md:w-56 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
+                        {!imageLoaded && (
+                          <div className="absolute inset-0 skeleton-shimmer bg-muted" />
+                        )}
+                        <img
+                          src={posterImage}
+                          alt={analysis.movie_title}
+                          className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                          onLoad={() => setImageLoaded(true)}
+                          data-testid="movie-poster"
+                        />
+                        {/* Poster glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Title and Meta */}
+                  <div className="flex-1 flex flex-col justify-center text-center md:text-left">
+                    <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                      <Badge 
+                        variant="outline" 
+                        className="font-mono text-xs tracking-wider border-primary/50 text-primary"
+                      >
+                        AI ANALYSIS COMPLETE
+                      </Badge>
+                      {isTV && (
+                        <Badge 
+                          variant="outline" 
+                          className="font-mono text-xs tracking-wider border-accent/50 text-accent"
+                        >
+                          <Tv className="w-3 h-3 mr-1" />
+                          TV SERIES
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {/* Logo or Title */}
+                    {logoImage ? (
+                      <div className="mb-4 flex justify-center md:justify-start">
+                        <img
+                          src={logoImage}
+                          alt={`${analysis.movie_title} logo`}
+                          className="h-16 md:h-24 w-auto object-contain drop-shadow-lg"
+                          data-testid="movie-logo"
+                        />
+                      </div>
+                    ) : (
+                      <h1 
+                        className="font-bebas text-4xl md:text-6xl lg:text-7xl tracking-tight text-white mb-2 drop-shadow-lg"
+                        data-testid="movie-title"
+                      >
+                        {analysis.movie_title}
+                      </h1>
+                    )}
+                    
+                    {/* Show title below logo if logo exists */}
+                    {logoImage && (
+                      <p className="text-muted-foreground font-manrope text-lg mb-3">{analysis.movie_title}</p>
+                    )}
+                    
+                    <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap mb-4">
                       <Badge variant="secondary" className="font-manrope">
                         {analysis.genre}
                       </Badge>
@@ -168,21 +253,24 @@ const ResultsPage = () => {
                         </span>
                       </div>
                     </div>
+                    
+                    {/* Add to Favorites Button */}
+                    <div className="flex justify-center md:justify-start">
+                      <Button
+                        variant={isMovieFavorite ? "default" : "outline"}
+                        onClick={toggleFavorite}
+                        className={`font-manrope transition-all duration-300 ${
+                          isMovieFavorite 
+                            ? 'bg-primary hover:bg-primary/80' 
+                            : 'border-white/20 hover:bg-white/10'
+                        }`}
+                        data-testid="favorite-button"
+                      >
+                        <Heart className={`w-4 h-4 mr-2 ${isMovieFavorite ? 'fill-white' : ''}`} />
+                        {isMovieFavorite ? 'Saved to Favorites' : 'Add to Favorites'}
+                      </Button>
+                    </div>
                   </div>
-                  {/* Add to Favorites Button */}
-                  <Button
-                    variant={isMovieFavorite ? "default" : "outline"}
-                    onClick={toggleFavorite}
-                    className={`font-manrope transition-all duration-300 ${
-                      isMovieFavorite 
-                        ? 'bg-primary hover:bg-primary/80' 
-                        : 'border-white/20 hover:bg-white/10'
-                    }`}
-                    data-testid="favorite-button"
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${isMovieFavorite ? 'fill-white' : ''}`} />
-                    {isMovieFavorite ? 'Saved to Favorites' : 'Add to Favorites'}
-                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -192,7 +280,7 @@ const ResultsPage = () => {
               variants={itemVariants}
               className="col-span-1 md:col-span-8"
             >
-              <Card className="glass-card border-white/10 h-full analysis-card" data-testid="critic-analysis-card">
+              <Card className="glass-card border-white/10 h-full analysis-card backdrop-blur-md" data-testid="critic-analysis-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
                     <div className="p-2 rounded-lg bg-primary/20">
@@ -214,7 +302,7 @@ const ResultsPage = () => {
               variants={itemVariants}
               className="col-span-1 md:col-span-4"
             >
-              <Card className="glass-card border-white/10 h-full analysis-card" data-testid="sentiment-card">
+              <Card className="glass-card border-white/10 h-full analysis-card backdrop-blur-md" data-testid="sentiment-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
                     <div className="p-2 rounded-lg bg-accent/20">
@@ -241,7 +329,7 @@ const ResultsPage = () => {
               variants={itemVariants}
               className="col-span-1 md:col-span-12"
             >
-              <Card className="glass-card border-white/10 analysis-card" data-testid="summary-card">
+              <Card className="glass-card border-white/10 analysis-card backdrop-blur-md" data-testid="summary-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
                     <div className="p-2 rounded-lg bg-blue-500/20">
@@ -264,7 +352,7 @@ const ResultsPage = () => {
                 variants={itemVariants}
                 className="col-span-1 md:col-span-12"
               >
-                <Card className="glass-card border-primary/30 bg-primary/5" data-testid="personalized-recommendations-card">
+                <Card className="glass-card border-primary/30 bg-primary/5 backdrop-blur-md" data-testid="personalized-recommendations-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
                       <div className="p-2 rounded-lg bg-primary/20">
@@ -306,7 +394,7 @@ const ResultsPage = () => {
               variants={itemVariants}
               className="col-span-1 md:col-span-12"
             >
-              <Card className="glass-card border-white/10" data-testid="recommendations-card">
+              <Card className="glass-card border-white/10 backdrop-blur-md" data-testid="recommendations-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
                     <div className="p-2 rounded-lg bg-purple-500/20">
@@ -341,7 +429,7 @@ const ResultsPage = () => {
               variants={itemVariants}
               className="col-span-1 md:col-span-12"
             >
-              <Card className="glass-card border-white/10" data-testid="captions-card">
+              <Card className="glass-card border-white/10 backdrop-blur-md" data-testid="captions-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
                     <div className="p-2 rounded-lg bg-pink-500/20">
