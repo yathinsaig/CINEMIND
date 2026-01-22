@@ -45,6 +45,7 @@ const ResultsPage = () => {
       navigate("/");
     } else {
       setIsMovieFavorite(isFavorite(analysis.movie_title));
+      setImageLoaded(false); // Reset image state when analysis changes
     }
   }, [analysis, navigate]);
 
