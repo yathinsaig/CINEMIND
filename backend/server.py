@@ -444,6 +444,7 @@ class MultiAgentOrchestrator:
         logger.info("Running Planner Agent...")
         plan_data = await self.planner_agent(movie_title)
         genre = plan_data.get('genre', 'Drama')
+        media_type = plan_data.get('type', 'Movie')
         
         # Step 2: Run agents sequentially (as per spec)
         logger.info("Running Critic Agent...")
@@ -467,20 +468,27 @@ class MultiAgentOrchestrator:
             logger.info("Running Personalized Recommendation Agent...")
             personalized_recs = await self.personalized_recommendation_agent(movie_title, genre, preferences)
         
+        # Step 4: Fetch media images
+        logger.info("Fetching media images...")
+        image_fetcher = MediaImageFetcher()
+        images = await image_fetcher.fetch_media_images(movie_title, media_type)
+        
         # Assemble response
         analysis_result = {
             "movie_title": movie_title,
             "genre": genre,
+            "media_type": media_type,
             "overall_sentiment": sentiment_data.get('overall', 'Mixed'),
             "critic_analysis": critic_analysis,
             "audience_sentiment": sentiment_data.get('analysis', ''),
             "summary": summary,
             "recommendations": recommendations,
             "personalized_recommendations": personalized_recs,
-            "instagram_captions": captions
+            "instagram_captions": captions,
+            "images": images
         }
         
-        # Step 4: Validator Agent
+        # Step 5: Validator Agent
         logger.info("Running Validator Agent...")
         validated_result = await self.validator_agent(analysis_result)
         
