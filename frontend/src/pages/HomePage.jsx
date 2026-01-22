@@ -1,21 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Film, Loader2, Sparkles, Settings2, Heart } from "lucide-react";
+import { Search, Film, Sparkles, Settings2, Heart } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import PreferencesModal from "../components/PreferencesModal";
 import { getPreferences, ALL_MOODS } from "../utils/storage";
-import axios from "axios";
 import { toast } from "sonner";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const HomePage = () => {
   const [movieTitle, setMovieTitle] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [preferences, setPreferences] = useState(null);
   const [selectedMood, setSelectedMood] = useState(null);
