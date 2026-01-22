@@ -272,7 +272,6 @@ class MovieIntelligenceAPITester:
             return False
 
     def run_all_tests(self):
-    def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Movie Intelligence API Tests")
         print(f"🌐 Testing against: {self.base_url}")
