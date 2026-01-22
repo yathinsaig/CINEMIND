@@ -16,7 +16,8 @@ import {
   Heart,
   Sparkles,
   Tv,
-  Image as ImageIcon
+  Loader2,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -24,7 +25,11 @@ import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { addToFavorites, removeFromFavorites, isFavorite } from "../utils/storage";
+import { addToFavorites, removeFromFavorites, isFavorite, getPreferences } from "../utils/storage";
+import axios from "axios";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const ResultsPage = () => {
   const location = useLocation();
@@ -32,6 +37,7 @@ const ResultsPage = () => {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [isMovieFavorite, setIsMovieFavorite] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadingMovie, setLoadingMovie] = useState(null);
   const analysis = location.state?.analysis;
 
   useEffect(() => {
