@@ -35,37 +35,9 @@ const HomePage = () => {
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      // Build request with preferences
-      const requestBody = {
-        movie_title: movieTitle.trim()
-      };
-
-      // Include preferences if user has any set
-      const currentPrefs = getPreferences();
-      if (currentPrefs.favorite_genres.length > 0 || 
-          currentPrefs.favorite_languages.length > 0 || 
-          currentPrefs.favorite_movies.length > 0 ||
-          selectedMood) {
-        requestBody.preferences = {
-          favorite_genres: currentPrefs.favorite_genres,
-          favorite_languages: currentPrefs.favorite_languages,
-          favorite_movies: currentPrefs.favorite_movies,
-          current_mood: selectedMood
-        };
-      }
-
-      const response = await axios.post(`${API}/analyze-movie`, requestBody);
-      
-      navigate("/results", { state: { analysis: response.data } });
-    } catch (error) {
-      console.error("Analysis failed:", error);
-      toast.error(error.response?.data?.detail || "Failed to analyze movie. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    // Navigate immediately to results page with pending title
+    // The results page will show loading skeleton and perform the analysis
+    navigate("/results", { state: { pendingTitle: movieTitle.trim() } });
   };
 
   const handlePreferencesSave = (newPrefs) => {
