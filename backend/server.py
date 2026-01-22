@@ -438,58 +438,92 @@ class MultiAgentOrchestrator:
         return analysis_data
     
     async def analyze_movie(self, movie_title: str, preferences: Optional[dict] = None) -> dict:
-        """Main orchestration method"""
+        """Main orchestration method - OPTIMIZED with parallel execution"""
         logger.info(f"Starting analysis for: {movie_title}")
         
-        # Step 1: Planner Agent - Get movie metadata
-        logger.info("Running Planner Agent...")
-        plan_data = await self.planner_agent(movie_title)
+        # Step 1: Run Planner Agent and fetch images in parallel (fast operations)
+        logger.info("Running Planner Agent and fetching images...")
+        image_fetcher = MediaImageFetcher()
+        
+        planner_task = self.planner_agent(movie_title)
+        images_task = image_fetcher.fetch_media_images(movie_title, "Movie")  # Initial guess
+        
+        plan_data, images = await asyncio.gather(planner_task, images_task)
+        
         genre = plan_data.get('genre', 'Drama')
         media_type = plan_data.get('type', 'Movie')
         
-        # Step 2: Run agents sequentially (as per spec)
-        logger.info("Running Critic Agent...")
-        critic_analysis = await self.critic_agent(movie_title, genre)
+        # If it's a TV series, try to fetch TV images (quick additional call)
+        if media_type.lower() in ['tv series', 'tv show', 'series']:
+            tv_images = await image_fetcher.fetch_media_images(movie_title, media_type)
+            if tv_images.get('poster') or tv_images.get('background'):
+                images = tv_images
         
-        logger.info("Running Sentiment Agent...")
-        sentiment_data = await self.sentiment_agent(movie_title)
+        # Step 2: Run ALL agents in PARALLEL for maximum speed
+        logger.info("Running all analysis agents in parallel...")
         
-        logger.info("Running Summary Agent...")
-        summary = await self.summary_agent(movie_title, genre)
+        # Create all agent tasks
+        critic_task = self.critic_agent(movie_title, genre)
+        sentiment_task = self.sentiment_agent(movie_title)
+        summary_task = self.summary_agent(movie_title, genre)
+        recommendation_task = self.recommendation_agent(movie_title, genre)
+        captions_task = self.social_media_agent(movie_title, genre)
         
-        logger.info("Running Recommendation Agent...")
-        recommendations = await self.recommendation_agent(movie_title, genre)
-        
-        logger.info("Running Social Media Agent...")
-        captions = await self.social_media_agent(movie_title, genre)
-        
-        # Step 3: Personalized Recommendations (if preferences provided)
-        personalized_recs = []
+        # Add personalized recommendations if preferences provided
         if preferences:
-            logger.info("Running Personalized Recommendation Agent...")
-            personalized_recs = await self.personalized_recommendation_agent(movie_title, genre, preferences)
-        
-        # Step 4: Fetch media images
-        logger.info("Fetching media images...")
-        image_fetcher = MediaImageFetcher()
-        images = await image_fetcher.fetch_media_images(movie_title, media_type)
+            personalized_task = self.personalized_recommendation_agent(movie_title, genre, preferences)
+            
+            # Run all tasks in parallel
+            results = await asyncio.gather(
+                critic_task,
+                sentiment_task,
+                summary_task,
+                recommendation_task,
+                captions_task,
+                personalized_task,
+                return_exceptions=True
+            )
+            
+            critic_analysis = results[0] if not isinstance(results[0], Exception) else "Analysis unavailable."
+            sentiment_data = results[1] if not isinstance(results[1], Exception) else {"overall": "Mixed", "analysis": ""}
+            summary = results[2] if not isinstance(results[2], Exception) else "Summary unavailable."
+            recommendations = results[3] if not isinstance(results[3], Exception) else []
+            captions = results[4] if not isinstance(results[4], Exception) else []
+            personalized_recs = results[5] if not isinstance(results[5], Exception) else []
+        else:
+            # Run without personalized recommendations
+            results = await asyncio.gather(
+                critic_task,
+                sentiment_task,
+                summary_task,
+                recommendation_task,
+                captions_task,
+                return_exceptions=True
+            )
+            
+            critic_analysis = results[0] if not isinstance(results[0], Exception) else "Analysis unavailable."
+            sentiment_data = results[1] if not isinstance(results[1], Exception) else {"overall": "Mixed", "analysis": ""}
+            summary = results[2] if not isinstance(results[2], Exception) else "Summary unavailable."
+            recommendations = results[3] if not isinstance(results[3], Exception) else []
+            captions = results[4] if not isinstance(results[4], Exception) else []
+            personalized_recs = []
         
         # Assemble response
         analysis_result = {
             "movie_title": movie_title,
             "genre": genre,
             "media_type": media_type,
-            "overall_sentiment": sentiment_data.get('overall', 'Mixed'),
+            "overall_sentiment": sentiment_data.get('overall', 'Mixed') if isinstance(sentiment_data, dict) else 'Mixed',
             "critic_analysis": critic_analysis,
-            "audience_sentiment": sentiment_data.get('analysis', ''),
+            "audience_sentiment": sentiment_data.get('analysis', '') if isinstance(sentiment_data, dict) else '',
             "summary": summary,
-            "recommendations": recommendations,
-            "personalized_recommendations": personalized_recs,
-            "instagram_captions": captions,
+            "recommendations": recommendations if isinstance(recommendations, list) else [],
+            "personalized_recommendations": personalized_recs if isinstance(personalized_recs, list) else [],
+            "instagram_captions": captions if isinstance(captions, list) else [],
             "images": images
         }
         
-        # Step 5: Validator Agent
+        # Step 3: Validator Agent (quick validation)
         logger.info("Running Validator Agent...")
         validated_result = await self.validator_agent(analysis_result)
         
