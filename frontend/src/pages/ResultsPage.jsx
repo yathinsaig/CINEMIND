@@ -12,7 +12,9 @@ import {
   Check,
   ThumbsUp,
   ThumbsDown,
-  Minus
+  Minus,
+  Heart,
+  Sparkles
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -20,16 +22,20 @@ import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { addToFavorites, removeFromFavorites, isFavorite } from "../utils/storage";
 
 const ResultsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [isMovieFavorite, setIsMovieFavorite] = useState(false);
   const analysis = location.state?.analysis;
 
   useEffect(() => {
     if (!analysis) {
       navigate("/");
+    } else {
+      setIsMovieFavorite(isFavorite(analysis.movie_title));
     }
   }, [analysis, navigate]);
 
@@ -41,6 +47,18 @@ const ResultsPage = () => {
       setTimeout(() => setCopiedIndex(null), 2000);
     } catch (err) {
       toast.error("Failed to copy");
+    }
+  };
+
+  const toggleFavorite = () => {
+    if (isMovieFavorite) {
+      removeFromFavorites(analysis.movie_title);
+      setIsMovieFavorite(false);
+      toast.success("Removed from favorites");
+    } else {
+      addToFavorites(analysis.movie_title);
+      setIsMovieFavorite(true);
+      toast.success("Added to favorites! This will improve your recommendations.");
     }
   };
 
@@ -78,6 +96,8 @@ const ResultsPage = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const hasPersonalizedRecs = analysis.personalized_recommendations && analysis.personalized_recommendations.length > 0;
 
   return (
     <div 
@@ -149,6 +169,20 @@ const ResultsPage = () => {
                       </div>
                     </div>
                   </div>
+                  {/* Add to Favorites Button */}
+                  <Button
+                    variant={isMovieFavorite ? "default" : "outline"}
+                    onClick={toggleFavorite}
+                    className={`font-manrope transition-all duration-300 ${
+                      isMovieFavorite 
+                        ? 'bg-primary hover:bg-primary/80' 
+                        : 'border-white/20 hover:bg-white/10'
+                    }`}
+                    data-testid="favorite-button"
+                  >
+                    <Heart className={`w-4 h-4 mr-2 ${isMovieFavorite ? 'fill-white' : ''}`} />
+                    {isMovieFavorite ? 'Saved to Favorites' : 'Add to Favorites'}
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -224,7 +258,50 @@ const ResultsPage = () => {
               </Card>
             </motion.div>
 
-            {/* Recommendations */}
+            {/* Personalized Recommendations (if available) */}
+            {hasPersonalizedRecs && (
+              <motion.div 
+                variants={itemVariants}
+                className="col-span-1 md:col-span-12"
+              >
+                <Card className="glass-card border-primary/30 bg-primary/5" data-testid="personalized-recommendations-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3 font-bebas text-2xl tracking-wide">
+                      <div className="p-2 rounded-lg bg-primary/20">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                      </div>
+                      PERSONALIZED FOR YOU
+                      <Badge variant="outline" className="ml-2 border-primary/50 text-primary font-mono text-xs">
+                        Based on your preferences
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                      {analysis.personalized_recommendations.map((rec, index) => (
+                        <div
+                          key={index}
+                          className="recommendation-card p-4 rounded-xl border border-primary/20 bg-primary/10 hover:bg-primary/15 transition-colors"
+                          data-testid={`personalized-rec-${index}`}
+                        >
+                          <div className="flex items-start gap-2 mb-2">
+                            <Heart className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
+                            <h4 className="font-bebas text-lg text-white tracking-wide">
+                              {rec.title}
+                            </h4>
+                          </div>
+                          <p className="text-muted-foreground text-sm font-manrope">
+                            {rec.reason}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Similar Recommendations */}
             <motion.div 
               variants={itemVariants}
               className="col-span-1 md:col-span-12"

@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Film, Loader2, Sparkles } from "lucide-react";
+import { Search, Film, Loader2, Sparkles, Settings2, Heart } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
+import PreferencesModal from "../components/PreferencesModal";
+import { getPreferences, ALL_MOODS } from "../utils/storage";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -13,7 +16,16 @@ const API = `${BACKEND_URL}/api`;
 const HomePage = () => {
   const [movieTitle, setMovieTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [preferences, setPreferences] = useState(null);
+  const [selectedMood, setSelectedMood] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const stored = getPreferences();
+    setPreferences(stored);
+    setSelectedMood(stored.current_mood);
+  }, []);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
@@ -26,9 +38,26 @@ const HomePage = () => {
     setIsLoading(true);
     
     try {
-      const response = await axios.post(`${API}/analyze-movie`, {
+      // Build request with preferences
+      const requestBody = {
         movie_title: movieTitle.trim()
-      });
+      };
+
+      // Include preferences if user has any set
+      const currentPrefs = getPreferences();
+      if (currentPrefs.favorite_genres.length > 0 || 
+          currentPrefs.favorite_languages.length > 0 || 
+          currentPrefs.favorite_movies.length > 0 ||
+          selectedMood) {
+        requestBody.preferences = {
+          favorite_genres: currentPrefs.favorite_genres,
+          favorite_languages: currentPrefs.favorite_languages,
+          favorite_movies: currentPrefs.favorite_movies,
+          current_mood: selectedMood
+        };
+      }
+
+      const response = await axios.post(`${API}/analyze-movie`, requestBody);
       
       navigate("/results", { state: { analysis: response.data } });
     } catch (error) {
@@ -39,6 +68,21 @@ const HomePage = () => {
     }
   };
 
+  const handlePreferencesSave = (newPrefs) => {
+    setPreferences(newPrefs);
+    setSelectedMood(newPrefs.current_mood);
+  };
+
+  const toggleMood = (moodValue) => {
+    setSelectedMood(prev => prev === moodValue ? null : moodValue);
+  };
+
+  const hasPreferences = preferences && (
+    preferences.favorite_genres.length > 0 ||
+    preferences.favorite_languages.length > 0 ||
+    preferences.favorite_movies.length > 0
+  );
+
   return (
     <div 
       className="hero-section min-h-screen flex items-center justify-center"
@@ -46,6 +90,22 @@ const HomePage = () => {
         backgroundImage: `url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920&q=80')`,
       }}
     >
+      {/* Preferences Button */}
+      <div className="absolute top-6 right-6 z-20 flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() => setShowPreferences(true)}
+          className="glass-card border-white/20 hover:bg-white/10 font-manrope"
+          data-testid="open-preferences"
+        >
+          <Settings2 className="w-4 h-4 mr-2" />
+          Preferences
+          {hasPreferences && (
+            <span className="ml-2 w-2 h-2 rounded-full bg-primary animate-pulse" />
+          )}
+        </Button>
+      </div>
+
       <div className="relative z-10 w-full max-w-3xl mx-auto px-6 py-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -71,13 +131,43 @@ const HomePage = () => {
 
           {/* Tagline */}
           <motion.p 
-            className="text-muted-foreground text-lg md:text-xl font-manrope mb-12 max-w-xl mx-auto"
+            className="text-muted-foreground text-lg md:text-xl font-manrope mb-8 max-w-xl mx-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
-            AI-Powered Movie Intelligence • Professional Analysis • Smart Recommendations
+            AI-Powered Movie Intelligence • Personalized Recommendations
           </motion.p>
+
+          {/* Mood Selector */}
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            <p className="text-muted-foreground/60 text-sm font-manrope mb-3">
+              What's your mood today? (optional)
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {ALL_MOODS.slice(0, 6).map((mood) => (
+                <Badge
+                  key={mood.value}
+                  variant={selectedMood === mood.value ? "default" : "outline"}
+                  className={`cursor-pointer transition-all duration-200 font-manrope py-2 px-4 ${
+                    selectedMood === mood.value
+                      ? 'bg-primary hover:bg-primary/80'
+                      : 'glass-card border-white/20 hover:bg-white/10'
+                  }`}
+                  onClick={() => toggleMood(mood.value)}
+                  data-testid={`mood-badge-${mood.value}`}
+                >
+                  <span className="mr-1">{mood.emoji}</span>
+                  {mood.label}
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
 
           {/* Search Form */}
           <motion.form
@@ -121,6 +211,21 @@ const HomePage = () => {
             </div>
           </motion.form>
 
+          {/* Preferences Summary */}
+          {hasPreferences && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+              className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground font-manrope"
+            >
+              <Heart className="w-4 h-4 text-primary" />
+              <span>
+                Personalized: {preferences.favorite_genres.length} genres, {preferences.favorite_languages.length} languages, {preferences.favorite_movies.length} favorites
+              </span>
+            </motion.div>
+          )}
+
           {/* Loading State Info */}
           {isLoading && (
             <motion.div
@@ -130,7 +235,7 @@ const HomePage = () => {
             >
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                <span>AI agents are analyzing your movie...</span>
+                <span>AI agents are analyzing your movie{hasPreferences ? " with your preferences" : ""}...</span>
               </div>
               <p className="text-sm text-muted-foreground/60">
                 This may take 15-30 seconds
@@ -148,7 +253,7 @@ const HomePage = () => {
             {[
               { label: "Critic Analysis", icon: "🎬" },
               { label: "Sentiment", icon: "💭" },
-              { label: "Recommendations", icon: "🎯" },
+              { label: "For You", icon: "💝" },
               { label: "Social Captions", icon: "📱" },
             ].map((feature, index) => (
               <div
@@ -171,6 +276,13 @@ const HomePage = () => {
           POWERED BY AI MULTI-AGENT SYSTEM
         </p>
       </div>
+
+      {/* Preferences Modal */}
+      <PreferencesModal
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+        onSave={handlePreferencesSave}
+      />
     </div>
   );
 };
