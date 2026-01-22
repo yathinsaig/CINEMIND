@@ -1,0 +1,179 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "CineMind AI",
+      "tone": "Cinematic, Premium, Insightful, Moody",
+      "archetype": "Jewel & Luxury (Cinematic Variant)",
+      "theme_mode": "dark"
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Bebas Neue, sans-serif",
+        "body": "Manrope, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-6xl md:text-8xl font-normal tracking-tight uppercase",
+        "h2": "text-4xl md:text-5xl font-normal tracking-wide uppercase",
+        "h3": "text-2xl md:text-3xl font-medium tracking-normal",
+        "body": "text-base md:text-lg leading-relaxed text-muted-foreground",
+        "caption": "text-sm font-mono tracking-widest uppercase text-muted-foreground/60"
+      },
+      "imports": [
+        "@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');"
+      ]
+    },
+    "colors": {
+      "palette": {
+        "background": "#050505",
+        "foreground": "#FAFAFA",
+        "card": "#0A0A0A",
+        "card_foreground": "#FFFFFF",
+        "primary": "#E50914",
+        "primary_foreground": "#FFFFFF",
+        "secondary": "#1A1A1A",
+        "secondary_foreground": "#E5E5E5",
+        "accent": "#F5C518",
+        "accent_foreground": "#000000",
+        "muted": "#262626",
+        "muted_foreground": "#A3A3A3",
+        "border": "#262626",
+        "input": "#262626",
+        "ring": "#E50914"
+      },
+      "gradients": {
+        "hero_glow": "radial-gradient(circle at center, rgba(229, 9, 20, 0.15) 0%, rgba(5, 5, 5, 0) 70%)",
+        "card_shine": "linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)",
+        "curtain_fade": "linear-gradient(to bottom, rgba(5,5,5,0) 0%, #050505 100%)"
+      }
+    },
+    "spacing": {
+      "container_padding": "p-6 md:p-12 lg:p-24",
+      "section_gap": "gap-12 md:gap-24",
+      "element_gap": "gap-4 md:gap-6"
+    },
+    "borders": {
+      "radius": {
+        "default": "rounded-lg",
+        "card": "rounded-xl",
+        "button": "rounded-md"
+      },
+      "width": "border",
+      "style": "border-white/10"
+    },
+    "shadows": {
+      "card": "shadow-[0_8px_30px_rgb(0,0,0,0.5)]",
+      "glow": "shadow-[0_0_20px_rgba(229,9,20,0.3)]"
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_background": {
+        "url": "https://images.unsplash.com/photo-1762541693135-fb989de961e1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHw0fHxjaW5lbWElMjB0aGVhdGVyJTIwZGFyayUyMGludGVyaW9yfGVufDB8fHx8MTc2OTA5MTc1NHww&ixlib=rb-4.1.0&q=85",
+        "alt": "Projector light beams in dark theater",
+        "usage": "Hero section background with heavy overlay"
+      },
+      "empty_theater": {
+        "url": "https://images.unsplash.com/photo-1761502479994-3a5e07ec243e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzV8MHwxfHNlYXJjaHwxfHxjaW5lbWElMjB0aGVhdGVyJTIwZGFyayUyMGludGVyaW9yfGVufDB8fHx8MTc2OTA5MTc1NHww&ixlib=rb-4.1.0&q=85",
+        "alt": "Empty modern cinema hall",
+        "usage": "Results page background or footer"
+      },
+      "abstract_reel": {
+        "url": "https://images.unsplash.com/photo-1571850447508-b0e0de962e87?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwxfHxmaWxtJTIwcmVlbCUyMGFic3RyYWN0JTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzY5MDkxNzU2fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Abstract city night blur",
+        "usage": "Card backgrounds or subtle textures"
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "preferred_icons": ["Clapperboard", "Film", "Star", "TrendingUp", "Share2", "Info", "Search", "Loader2"]
+    }
+  },
+  "components": {
+    "Button": {
+      "base": "font-bebas tracking-wide uppercase transition-all duration-300",
+      "variants": {
+        "default": "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow hover:scale-105",
+        "outline": "border-white/20 bg-transparent hover:bg-white/10 hover:text-white hover:border-white/40",
+        "ghost": "hover:bg-white/5 hover:text-accent"
+      }
+    },
+    "Card": {
+      "base": "bg-card/50 backdrop-blur-md border-white/10 hover:border-white/20 transition-colors duration-300",
+      "content": "p-6 md:p-8"
+    },
+    "Input": {
+      "base": "bg-secondary/50 border-white/10 focus:border-primary/50 focus:ring-primary/20 h-12 md:h-14 text-lg font-manrope placeholder:text-muted-foreground/50"
+    },
+    "Badge": {
+      "base": "font-mono uppercase tracking-wider text-xs px-3 py-1 rounded-full border border-white/10 bg-black/40"
+    }
+  },
+  "layout_strategies": {
+    "home_page": {
+      "structure": "Centered Hero",
+      "elements": [
+        "Full-screen background image with radial gradient overlay (black at edges, transparent center)",
+        "Central container: Logo (Large, Bebas Neue), Tagline (Manrope, muted), Search Bar (Large, glowing)",
+        "Footer: Minimal links"
+      ]
+    },
+    "results_page": {
+      "structure": "Bento Grid (Mode A: Tetris)",
+      "grid_config": "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-12",
+      "areas": [
+        {
+          "name": "Movie Poster",
+          "span": "col-span-1 md:col-span-4 lg:col-span-3 row-span-2",
+          "style": "Tall aspect ratio, rounded-xl overflow-hidden shadow-2xl"
+        },
+        {
+          "name": "Title & Meta",
+          "span": "col-span-1 md:col-span-8 lg:col-span-9 row-span-1",
+          "style": "Flex col, large H1, badges for genre/year"
+        },
+        {
+          "name": "Critic Analysis",
+          "span": "col-span-1 md:col-span-8 lg:col-span-6",
+          "style": "Glass card, rich text, high readability"
+        },
+        {
+          "name": "Sentiment Score",
+          "span": "col-span-1 md:col-span-4 lg:col-span-3",
+          "style": "Radial chart or gauge, accent color"
+        },
+        {
+          "name": "Spoiler Summary",
+          "span": "col-span-1 md:col-span-12",
+          "style": "Accordion or blur-reveal component"
+        },
+        {
+          "name": "Recommendations",
+          "span": "col-span-1 md:col-span-12",
+          "style": "Horizontal scroll carousel with poster cards"
+        },
+        {
+          "name": "Instagram Captions",
+          "span": "col-span-1 md:col-span-12",
+          "style": "Grid of 3 small cards with copy button"
+        }
+      ]
+    }
+  },
+  "motion": {
+    "page_transition": "initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5, ease: 'easeOut' }}",
+    "hover_lift": "hover:-translate-y-1 hover:shadow-lg transition-transform duration-300",
+    "stagger_children": "variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}"
+  },
+  "universal_guidelines": [
+    "ALWAYS use 'Bebas Neue' for headings and 'Manrope' for body text.",
+    "NEVER use pure black (#000000) for backgrounds; use #050505 or #0A0A0A.",
+    "Use 'text-muted-foreground' for secondary text to reduce eye strain.",
+    "Ensure all interactive elements have a hover state (color change or scale).",
+    "Use 'backdrop-blur-md' for overlays to maintain context.",
+    "Add 'data-testid' to all interactive elements.",
+    "Do not use gradients for text; keep text solid for readability.",
+    "Images must have 'object-cover' and proper aspect ratios."
+  ],
+  "instructions_to_main_agent": "1. Install 'lucide-react' and 'framer-motion'. 2. Update 'tailwind.config.js' with the provided colors and fonts. 3. Create the 'Bebas Neue' and 'Manrope' font imports in 'index.css'. 4. Build the 'Home' and 'Results' pages using the defined layout strategies. 5. Use the provided image URLs for backgrounds and placeholders."
+}
