@@ -99,9 +99,6 @@ const ResultsPage = () => {
 
   const hasPersonalizedRecs = Array.isArray(analysis.personalized_recommendations) && analysis.personalized_recommendations.length > 0;
 
-  // Debug log for personalized recommendations
-  console.log('Personalized Recs:', analysis.personalized_recommendations, 'Has:', hasPersonalizedRecs);
-
   return (
     <div 
       className="min-h-screen bg-background"

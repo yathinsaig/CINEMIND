@@ -61,6 +61,11 @@ Agents:
 | 2025-01-22 | Copy-to-clipboard for captions | ✅ Complete |
 | 2025-01-22 | Dark cinematic theme | ✅ Complete |
 | 2025-01-22 | MongoDB storage for analyses | ✅ Complete |
+| 2025-01-22 | **Personalized Recommendations** | ✅ Complete |
+| 2025-01-22 | User preferences (genres, languages, mood) | ✅ Complete |
+| 2025-01-22 | Save to favorites functionality | ✅ Complete |
+| 2025-01-22 | Local storage preferences persistence | ✅ Complete |
+| 2025-01-22 | Mood selector on homepage | ✅ Complete |
 
 ## Prioritized Backlog
 
