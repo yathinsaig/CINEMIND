@@ -152,28 +152,18 @@ const HomePage = () => {
                   placeholder="Enter a movie or TV series name..."
                   value={movieTitle}
                   onChange={(e) => setMovieTitle(e.target.value)}
-                  disabled={isLoading}
                   className="search-input pl-12 h-14 md:h-16 text-lg bg-transparent border-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
                   data-testid="movie-input"
                 />
               </div>
               <Button
                 type="submit"
-                disabled={isLoading || !movieTitle.trim()}
+                disabled={!movieTitle.trim()}
                 className="h-12 md:h-14 px-6 md:px-8 font-bebas text-lg tracking-wide bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(229,9,20,0.4)]"
                 data-testid="analyze-button"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    ANALYZING...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    ANALYZE
-                  </>
-                )}
+                <Sparkles className="w-5 h-5 mr-2" />
+                ANALYZE
               </Button>
             </div>
           </motion.form>
