@@ -211,7 +211,65 @@ class MovieIntelligenceAPITester:
             self.log_test("Status Endpoints", False, str(e))
             return False
 
-    def run_all_tests(self):
+    def test_personalized_recommendations(self):
+        """Test personalized recommendations with user preferences"""
+        try:
+            # Test with comprehensive preferences
+            preferences = {
+                "favorite_genres": ["Action", "Sci-Fi", "Thriller"],
+                "favorite_languages": ["English", "Japanese"],
+                "favorite_movies": ["The Matrix", "Blade Runner", "Ghost in the Shell"],
+                "current_mood": "adventurous"
+            }
+            
+            success, data = self.test_analyze_movie_valid("Inception", preferences)
+            
+            if success and data:
+                # Validate personalized recommendations
+                personalized_recs = data.get('personalized_recommendations', [])
+                if len(personalized_recs) > 0:
+                    print(f"   ✅ Generated {len(personalized_recs)} personalized recommendations")
+                    for i, rec in enumerate(personalized_recs[:3]):  # Show first 3
+                        print(f"      {i+1}. {rec.get('title', 'N/A')}: {rec.get('reason', 'N/A')[:50]}...")
+                    return True
+                else:
+                    self.log_test("Personalized Recommendations Generation", False, "No personalized recommendations generated despite preferences")
+                    return False
+            else:
+                return False
+                
+        except Exception as e:
+            self.log_test("Personalized Recommendations", False, str(e))
+            return False
+
+    def test_preferences_optional(self):
+        """Test that preferences are optional and don't break regular analysis"""
+        try:
+            # Test with empty preferences
+            empty_preferences = {
+                "favorite_genres": [],
+                "favorite_languages": [],
+                "favorite_movies": [],
+                "current_mood": None
+            }
+            
+            success, data = self.test_analyze_movie_valid("Interstellar", empty_preferences)
+            
+            if success and data:
+                # Should have empty or no personalized recommendations
+                personalized_recs = data.get('personalized_recommendations', [])
+                if len(personalized_recs) == 0:
+                    print(f"   ✅ Correctly handled empty preferences - no personalized recs generated")
+                    return True
+                else:
+                    self.log_test("Empty Preferences Handling", False, f"Generated {len(personalized_recs)} recs despite empty preferences")
+                    return False
+            else:
+                return False
+                
+        except Exception as e:
+            self.log_test("Empty Preferences Handling", False, str(e))
+            return False
         """Run all backend tests"""
         print("🚀 Starting Movie Intelligence API Tests")
         print(f"🌐 Testing against: {self.base_url}")
