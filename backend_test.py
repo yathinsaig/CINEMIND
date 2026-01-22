@@ -272,6 +272,8 @@ class MovieIntelligenceAPITester:
             return False
 
     def run_all_tests(self):
+    def run_all_tests(self):
+        """Run all backend tests"""
         print("🚀 Starting Movie Intelligence API Tests")
         print(f"🌐 Testing against: {self.base_url}")
         print("=" * 60)
@@ -283,11 +285,35 @@ class MovieIntelligenceAPITester:
         
         # Test core functionality
         self.test_analyze_movie_valid("The Matrix")
+        
+        # Test personalized recommendations feature
+        self.test_personalized_recommendations()
+        self.test_preferences_optional()
+        
+        # Test with another movie for validation
         self.test_analyze_movie_valid("Inception")  # Test with another movie
         
         # Test error handling
         self.test_analyze_movie_empty_title()
         self.test_analyze_movie_whitespace_title()
+        
+        # Test other endpoints
+        self.test_get_analyses()
+        self.test_status_endpoints()
+        
+        # Print summary
+        print("\n" + "=" * 60)
+        print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        
+        if self.failed_tests:
+            print("\n❌ Failed Tests:")
+            for test in self.failed_tests:
+                print(f"   • {test['test']}: {test['error']}")
+        
+        success_rate = (self.tests_passed / self.tests_run) * 100 if self.tests_run > 0 else 0
+        print(f"✅ Success Rate: {success_rate:.1f}%")
+        
+        return success_rate >= 80  # Consider 80%+ as overall success
         
         # Test other endpoints
         self.test_get_analyses()
