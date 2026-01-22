@@ -71,6 +71,49 @@ const ResultsPage = () => {
     }
   };
 
+  const handleRecommendationClick = async (movieTitle) => {
+    if (loadingMovie) return; // Prevent multiple clicks
+    
+    setLoadingMovie(movieTitle);
+    toast.info(`Analyzing "${movieTitle}"...`, { duration: 2000 });
+    
+    try {
+      // Build request with user preferences
+      const requestBody = { movie_title: movieTitle };
+      
+      const currentPrefs = getPreferences();
+      if (currentPrefs.favorite_genres.length > 0 || 
+          currentPrefs.favorite_languages.length > 0 || 
+          currentPrefs.favorite_movies.length > 0 ||
+          currentPrefs.current_mood) {
+        requestBody.preferences = {
+          favorite_genres: currentPrefs.favorite_genres,
+          favorite_languages: currentPrefs.favorite_languages,
+          favorite_movies: currentPrefs.favorite_movies,
+          current_mood: currentPrefs.current_mood
+        };
+      }
+
+      const response = await axios.post(`${API}/analyze-movie`, requestBody);
+      
+      // Reset image loaded state for new movie
+      setImageLoaded(false);
+      
+      // Navigate to the same page with new data (this will update the state)
+      navigate("/results", { state: { analysis: response.data }, replace: true });
+      
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      toast.success(`Now viewing: ${movieTitle}`);
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      toast.error(error.response?.data?.detail || "Failed to analyze movie. Please try again.");
+    } finally {
+      setLoadingMovie(null);
+    }
+  };
+
   const getSentimentIcon = (sentiment) => {
     const s = sentiment?.toLowerCase() || "";
     if (s.includes("positive")) return <ThumbsUp className="w-6 h-6 text-green-500" />;
