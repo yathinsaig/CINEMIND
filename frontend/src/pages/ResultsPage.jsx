@@ -418,14 +418,26 @@ const ResultsPage = () => {
                       {analysis.personalized_recommendations.map((rec, index) => (
                         <div
                           key={index}
-                          className="recommendation-card p-4 rounded-xl border border-primary/20 bg-primary/10 hover:bg-primary/15 transition-colors"
+                          onClick={() => handleRecommendationClick(rec.title)}
+                          className={`recommendation-card p-4 rounded-xl border border-primary/20 bg-primary/10 
+                            hover:bg-primary/25 hover:border-primary/40 hover:scale-[1.02] 
+                            transition-all duration-300 cursor-pointer group relative
+                            ${loadingMovie === rec.title ? 'opacity-70 pointer-events-none' : ''}`}
                           data-testid={`personalized-rec-${index}`}
                         >
-                          <div className="flex items-start gap-2 mb-2">
-                            <Heart className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
-                            <h4 className="font-bebas text-lg text-white tracking-wide">
-                              {rec.title}
-                            </h4>
+                          {loadingMovie === rec.title && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                              <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                            </div>
+                          )}
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-start gap-2">
+                              <Heart className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
+                              <h4 className="font-bebas text-lg text-white tracking-wide group-hover:text-primary transition-colors">
+                                {rec.title}
+                              </h4>
+                            </div>
+                            <ExternalLink className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100" />
                           </div>
                           <p className="text-muted-foreground text-sm font-manrope">
                             {rec.reason}
@@ -450,6 +462,9 @@ const ResultsPage = () => {
                       <Clapperboard className="w-5 h-5 text-purple-400" />
                     </div>
                     SIMILAR RECOMMENDATIONS
+                    <span className="ml-auto text-xs text-muted-foreground font-manrope font-normal normal-case tracking-normal">
+                      Click to explore
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -457,12 +472,24 @@ const ResultsPage = () => {
                     {analysis.recommendations?.map((rec, index) => (
                       <div
                         key={index}
-                        className="recommendation-card p-4 rounded-xl border border-white/10 bg-white/5"
+                        onClick={() => handleRecommendationClick(rec.title)}
+                        className={`recommendation-card p-4 rounded-xl border border-white/10 bg-white/5 
+                          hover:bg-white/10 hover:border-white/20 hover:scale-[1.02] 
+                          transition-all duration-300 cursor-pointer group relative
+                          ${loadingMovie === rec.title ? 'opacity-70 pointer-events-none' : ''}`}
                         data-testid={`recommendation-${index}`}
                       >
-                        <h4 className="font-bebas text-lg text-white mb-2 tracking-wide">
-                          {rec.title}
-                        </h4>
+                        {loadingMovie === rec.title && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                            <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+                          </div>
+                        )}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-bebas text-lg text-white tracking-wide group-hover:text-purple-400 transition-colors">
+                            {rec.title}
+                          </h4>
+                          <ExternalLink className="w-4 h-4 text-white/30 group-hover:text-purple-400 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100" />
+                        </div>
                         <p className="text-muted-foreground text-sm font-manrope">
                           {rec.reason}
                         </p>
