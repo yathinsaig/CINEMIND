@@ -276,7 +276,7 @@ class MultiAgentOrchestrator:
         
         return analysis_data
     
-    async def analyze_movie(self, movie_title: str) -> dict:
+    async def analyze_movie(self, movie_title: str, preferences: Optional[dict] = None) -> dict:
         """Main orchestration method"""
         logger.info(f"Starting analysis for: {movie_title}")
         
@@ -301,6 +301,12 @@ class MultiAgentOrchestrator:
         logger.info("Running Social Media Agent...")
         captions = await self.social_media_agent(movie_title, genre)
         
+        # Step 3: Personalized Recommendations (if preferences provided)
+        personalized_recs = []
+        if preferences:
+            logger.info("Running Personalized Recommendation Agent...")
+            personalized_recs = await self.personalized_recommendation_agent(movie_title, genre, preferences)
+        
         # Assemble response
         analysis_result = {
             "movie_title": movie_title,
@@ -310,10 +316,11 @@ class MultiAgentOrchestrator:
             "audience_sentiment": sentiment_data.get('analysis', ''),
             "summary": summary,
             "recommendations": recommendations,
+            "personalized_recommendations": personalized_recs,
             "instagram_captions": captions
         }
         
-        # Step 3: Validator Agent
+        # Step 4: Validator Agent
         logger.info("Running Validator Agent...")
         validated_result = await self.validator_agent(analysis_result)
         
