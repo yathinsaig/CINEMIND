@@ -183,23 +183,6 @@ const HomePage = () => {
             </motion.div>
           )}
 
-          {/* Loading State Info */}
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8 text-muted-foreground font-manrope"
-            >
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                <span>AI agents are analyzing your movie{hasPreferences ? " with your preferences" : ""}...</span>
-              </div>
-              <p className="text-sm text-muted-foreground/60">
-                This may take 15-30 seconds
-              </p>
-            </motion.div>
-          )}
-
           {/* Features */}
           <motion.div
             className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
